@@ -10,7 +10,9 @@ export async function scrapeUrl(url) {
         const response = await axios.get(url, {
             timeout: TIMEOUT,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                // Simple UA - some sites block browser-like UAs
+                'User-Agent': 'MediaScraper/1.0',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
             }
         });
 
