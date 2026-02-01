@@ -3,12 +3,14 @@ import axios from 'axios';
 import MediaGallery from './components/MediaGallery';
 import FilterBar from './components/FilterBar';
 import Pagination from './components/Pagination';
+import Lightbox from './components/Lightbox';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 function App() {
     const [media, setMedia] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedItem, setSelectedItem] = useState(null);
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 20,
@@ -57,6 +59,14 @@ function App() {
         setPagination(prev => ({ ...prev, page }));
     };
 
+    const handleItemClick = (item) => {
+        setSelectedItem(item);
+    };
+
+    const handleCloseLightbox = () => {
+        setSelectedItem(null);
+    };
+
     return (
         <div className="app">
             <header className="header">
@@ -66,7 +76,7 @@ function App() {
 
             <div className="stats">
                 <div className="stat">
-                    <div className="value">{pagination.total}</div>
+                    <div className="value">{pagination.total.toLocaleString()}</div>
                     <div className="label">Total Media</div>
                 </div>
             </div>
@@ -79,13 +89,17 @@ function App() {
                 <div className="empty">No media found. Try adjusting your filters.</div>
             ) : (
                 <>
-                    <MediaGallery media={media} />
+                    <MediaGallery media={media} onItemClick={handleItemClick} />
                     <Pagination
                         currentPage={pagination.page}
                         totalPages={pagination.totalPages}
                         onPageChange={handlePageChange}
                     />
                 </>
+            )}
+
+            {selectedItem && (
+                <Lightbox item={selectedItem} onClose={handleCloseLightbox} />
             )}
         </div>
     );

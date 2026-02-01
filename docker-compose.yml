@@ -15,11 +15,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    # Resource limits for load testing (shared 1GB)
+    # Resource limits for load testing (shared 1GB RAM, 1 CPU)
     deploy:
       resources:
         limits:
           memory: 256M
+          cpus: '0.3'
+    # Disable swap (memory-swap = memory means no swap)
+    memswap_limit: 256M
 
   # Redis for BullMQ
   redis:
@@ -35,6 +38,8 @@ services:
       resources:
         limits:
           memory: 128M
+          cpus: '0.1'
+    memswap_limit: 128M
 
   # Backend API + Worker (main service under test)
   backend:
@@ -56,12 +61,13 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-    # Resource limits: 1 CPU, ~500MB RAM (leaving room for postgres/redis)
+    # Resource limits: 0.5 CPU, 512MB RAM (NO SWAP)
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: '0.5'
           memory: 512M
+    memswap_limit: 512M
 
   # Frontend
   frontend:
@@ -79,6 +85,8 @@ services:
       resources:
         limits:
           memory: 128M
+          cpus: '0.1'
+    memswap_limit: 128M
 
 volumes:
   postgres_data:

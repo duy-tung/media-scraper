@@ -1,32 +1,19 @@
-import { useState } from 'react';
-
-function MediaCard({ item }) {
+function MediaCard({ item, onItemClick }) {
     const isVideo = item.type === 'video';
-    const [showVideo, setShowVideo] = useState(false);
 
-    const handleVideoClick = () => {
-        setShowVideo(true);
+    const handleClick = () => {
+        if (onItemClick) {
+            onItemClick(item);
+        }
     };
 
     return (
-        <div className="media-card">
+        <div className="media-card" onClick={handleClick}>
             {isVideo ? (
-                showVideo ? (
-                    <video
-                        className="media-content"
-                        src={item.url}
-                        controls
-                        autoPlay
-                        onError={(e) => {
-                            e.target.style.display = 'none';
-                        }}
-                    />
-                ) : (
-                    <div className="media-content video" onClick={handleVideoClick}>
-                        <span className="play-icon">▶️</span>
-                        <span className="click-hint">Click to play</span>
-                    </div>
-                )
+                <div className="media-content video">
+                    <span className="play-icon">▶️</span>
+                    <span className="click-hint">Click to view</span>
+                </div>
             ) : (
                 <img
                     className="media-content"
