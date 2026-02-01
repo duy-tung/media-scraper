@@ -56,24 +56,51 @@ Query params:
 # Install k6
 brew install k6
 
-# Run load test
-k6 run loadtest/script.js
+# Run load test (5000 requests simulation)
+k6 run loadtest/load-test.js
 ```
+
+### Load Test Results (1 CPU / 1GB RAM)
+
+| Metric | Value |
+|--------|-------|
+| **Total Requests** | 5,000 POST (queuing) + 1,096 GET (reads) |
+| **URLs Queued** | 10,000 |
+| **Success Rate** | 100% (0 errors) |
+| **Avg Queue Latency** | 77ms |
+| **p95 Queue Latency** | 276ms |
+| **Avg Read Response** | 101ms |
+| **p95 Read Response** | 191ms |
+| **Requests/sec** | 48.38 |
+
+**All thresholds passed:**
+- ✅ Burst p95 < 500ms
+- ✅ Read p95 < 1000ms
+- ✅ Error rate < 1%
 
 ## Architecture
 
 ```
-Client → POST /api/scrape → BullMQ Queue → Worker (concurrency:1) → PostgreSQL
+Client → POST /api/scrape → BullMQ Queue → Worker (concurrency: 10) → PostgreSQL
                                                     ↓
-                                              Cheerio Scraper
+                                             Cheerio Scraper
 ```
 
 ### Key Design Decisions
 
 - **BullMQ + Redis**: Job queue with auto-retry (3 attempts, exponential backoff)
-- **Concurrency: 1**: Optimized for 1 CPU, avoids context switching
 - **Batch DB Inserts**: 50 records/batch to reduce DB round trips
-- **Cheerio**: 50x lighter than Puppeteer (~5MB vs ~250MB)
+- **Worker Concurrency**: 10 parallel jobs (I/O-bound optimization)
+
+### Resource Constraints (Docker)
+
+| Service | CPU | Memory |
+|---------|-----|--------|
+| Backend | 0.5 | 512MB |
+| PostgreSQL | 0.3 | 256MB |
+| Redis | 0.1 | 128MB |
+| Frontend | 0.1 | 128MB |
+| **Total** | **1.0** | **1024MB** |
 
 ## Project Structure
 
@@ -81,16 +108,23 @@ Client → POST /api/scrape → BullMQ Queue → Worker (concurrency:1) → Post
 media-scraper/
 ├── backend/
 │   └── src/
-│       ├── index.js          # Express server
-│       ├── models/           # Sequelize models
-│       ├── routes/           # API routes
-│       ├── queue/            # BullMQ queue + worker
-│       └── services/         # Scraper service
+│       ├── index.js           # Express server
+│       ├── models/            # Sequelize models (Media)
+│       ├── routes/            # API routes (/scrape, /media)
+│       ├── queue/             # BullMQ queue + worker
+│       └── services/          # Cheerio scraper service
 ├── frontend/
 │   └── src/
-│       ├── App.jsx           # Main app
-│       └── components/       # React components
+│       ├── App.jsx            # Main app
+│       ├── index.css          # Styles
+│       └── components/
+│           ├── FilterBar.jsx
+│           ├── Lightbox.jsx
+│           ├── MediaCard.jsx
+│           ├── MediaGallery.jsx
+│           └── Pagination.jsx
 ├── loadtest/
-│   └── script.js             # k6 load test
+│   └── load-test.js           # k6 load test (5000 requests)
+├── loadtest-results.json      # Latest test results
 └── docker-compose.yml
 ```
