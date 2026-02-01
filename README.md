@@ -26,7 +26,7 @@ Queue URLs for scraping.
 ```bash
 curl -X POST http://localhost:3001/api/scrape \
   -H "Content-Type: application/json" \
-  -d '{"urls": ["https://example.com", "https://httpbin.org/html"]}'
+  -d '{"urls": ["https://www.nps.gov/subjects/technology/nasa-collaboration.htm", "https://commons.wikimedia.org/wiki/Main_Page"]}'
 ```
 
 Response: `202 Accepted`
